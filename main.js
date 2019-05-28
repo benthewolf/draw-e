@@ -16,12 +16,12 @@
     canvas.canvas.height = workspc.getBoundingClientRect().height;
 
     //is There a drag occuring ?
-    var isDragging = false;
+    let isDragging = false;
 
     //Currently valid shapes
-    var currentShapes = {};
+    let currentShapes = {};
 
-    var currentSelected;
+    let currentSelected;
     //Currently selected rendered shape
     let currentSelectedRenderedShape;
 
@@ -31,7 +31,7 @@
     }
 
     //Create the preview element and style it;
-    var elem = document.createElement("DIV");
+    let elem = document.createElement("DIV");
     elem.classList.add("circle");
     elem.style.borderColor = "black";
     elem.id = "preview";
@@ -170,7 +170,7 @@
     }
 
 
-    var mouseMovement = 0;
+    let mouseMovement = 0;
 
     function UpdatePreview(event) {
         /**
@@ -246,7 +246,7 @@
         }
     }
 
-    for (var a = 0; a < tools.length; ++a) {
+    for (let a = 0; a < tools.length; ++a) {
         tools[a].addEventListener("click", function (event) {
             event.stopPropagation();
             event.target.classList.toggle("active");
