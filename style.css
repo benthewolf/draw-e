@@ -1,0 +1,95 @@
+body {
+    margin: 0px;
+    padding: 0px;
+}
+
+.layout {
+    width: 100vw;
+    height: 100vh;
+    margin: 0px;
+    padding: 0px;
+    display: grid;
+    grid-template-columns: 2.2fr 5fr 5fr;
+    grid-template-rows: max-content auto;
+}
+
+.headbar {
+    display: flex;
+    flex-direction: row;
+    height: 60px;
+    width: 100%;
+    grid-column-start: 1;
+    grid-column-end: 4;
+    background-color: #273043;
+}
+
+.headbar .title {
+    margin: auto 0px;
+    font-family: "Trebuchet MS", "Lucida Sans Unicode", "Lucida Grande",
+        "Lucida Sans", Arial, sans-serif;
+
+    color: #edeff4;
+    font-size: 200%;
+    padding-left: 1%;
+}
+
+.circle {
+    margin: auto;
+    border: 2px solid white;
+    width: 25px;
+    height: 25px;
+    border-radius: 90%;
+    /*  background-color: #edeff4; */
+}
+
+.active {
+    box-shadow: rgba(0, 0, 0, 0.534) 1px 1px 6px 1px inset;
+    background-color: #2d6bef;
+}
+
+.button {
+    cursor: pointer;
+    transition: background-color 0.5s;
+    display: flex;
+    height: 30px;
+    width: 30px;
+    background-color: #103ea0;
+    border: none;
+    padding: 7px 15px 7px 15px;
+    border-radius: 7px;
+}
+
+.button:hover {
+    transition: background-color 0.5s;
+    background-color: #2d6bef;
+}
+
+button:focus {
+    outline: none;
+}
+
+.tool {}
+
+.headbar .tools {
+    border-radius: 7px;
+    margin: auto auto auto auto;
+    display: flex;
+    padding: 4px;
+}
+
+.sidebar {
+    grid-row-start: 2;
+    height: 100%;
+    width: 100%;
+    background-color: #103ea0;
+    display: flex;
+    flex-direction: column;
+}
+
+.workspace {
+    overflow: scroll;
+    background-color: #edeff4;
+    grid-column-start: 2;
+    grid-column-end: 4;
+    height: 100%;
+}
