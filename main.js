@@ -2,8 +2,10 @@ var tools = document.getElementsByClassName("tool");
 var circleTool = document.getElementById("circle");
 const workspc = document.getElementById("workspc");
 const viewport = document.getElementById("viewport");
+const drawnPane = document.getElementById("drawnpane");
 var isDragging = false;
 var currentElems = [];
+var currentSelected;
 
 circleTool.addEventListener("click", ToolSelectionHandler);
 
@@ -33,8 +35,8 @@ function DrawOnWorkspace(event) {
         elem.style.width = "12.5%";
         elem.style.height = "25%";
         let newElem = document.createElement("DIV");
-        newElem.id = Math.floor(1 + Math.random() * 20000000) + " id";
-
+        newElem.id = Math.floor(1 + Math.random() * 20000000) + "  circle";
+        currentElems.push(newElem.id);
         newElem.classList.add("circle");
         newElem.style.width = rect.width + "px";
         newElem.style.height = rect.height + "px";
@@ -43,17 +45,51 @@ function DrawOnWorkspace(event) {
         newElem.style.margin = "0px";
         newElem.style.display = "inline-block";
         newElem.style.zIndex = "1";
-
         newElem.addEventListener("click", HandleClick)
-
         workspc.appendChild(newElem);
+        RenderDrawnPane();
     }
 
 }
 
 function HandleClick(event) {
-    event.stopPropagation();
+    if (currentSelected != event.target.id) {
+        currentSelected = event.target.id;
+    } else {
+        currentSelected = null;
+    }
+}
 
+function DeleteItem(elem) {
+    return;
+}
+
+function RenderDrawnPane() {
+
+    let currentpane = drawnPane.childNodes;
+    for (let i = 0; i < currentpane.length; ++i) {
+        drawnPane.removeChild(currentpane[i]);
+    }
+
+    var frag = new DocumentFragment();
+
+    for (let a = 0; a < currentElems.length; ++a) {
+
+        let newElem = document.createElement("DIV");
+        newElem.classList.add("viewer");
+        newElem.innerText = currentElems[a];
+        let button = document.createElement("BUTTON");
+        button.innerText = "Delete";
+        button.addEventListener("click", DeleteItem);
+
+        newElem.appendChild(button);
+
+        frag.appendChild(newElem);
+
+
+    }
+
+    drawnPane.appendChild(frag);
 }
 
 
