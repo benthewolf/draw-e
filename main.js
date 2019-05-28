@@ -51,7 +51,7 @@ function DrawOnWorkspace(event) {
 
 }
 
-function HandleMovement(event) {
+function HandleClick(event) {
     event.stopPropagation();
 
 }
