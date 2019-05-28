@@ -1,153 +1,255 @@
-var tools = document.getElementsByClassName("tool");
-var circleTool = document.getElementById("circle");
-const workspc = document.getElementById("workspc");
-const viewport = document.getElementById("viewport");
-const drawnPane = document.getElementById("drawnpane");
-var isDragging = false;
-var currentElems = [];
-var currentSelected;
+(() => {
+    //These are all the the tools 
+    const tools = document.getElementsByClassName("tool");
 
-circleTool.addEventListener("click", ToolSelectionHandler);
+    //The container for the cavas
+    const workspc = document.getElementById("workspc");
 
-var elem = document.createElement("DIV");
+    //The pane that shows currently rendered elements
+    const drawnPane = document.getElementById("drawnpane");
 
-elem.classList.add("circle");
-elem.style.borderColor = "black";
-elem.id = "preview";
-elem.style.position = "absolute";
-elem.style.width = "12.5%";
-elem.style.height = "25%";
-elem.style.display = "none";
-workspc.appendChild(elem);
+    //The canvas
+    const canvas = document.querySelector("canvas").getContext("2d");
+
+    //Set the width and height of the canvas to match its parent
+    canvas.canvas.width = workspc.getBoundingClientRect().width;
+    canvas.canvas.height = workspc.getBoundingClientRect().height;
+
+    //is There a drag occuring ?
+    var isDragging = false;
+
+    //Currently valid shapes
+    var currentShapes = {};
+
+    var currentSelected;
+    //Currently selected rendered shape
+    let currentSelectedRenderedShape;
+
+    //Add event listeners for all tools for the click event
+    for (let a = 0; a < tools.length; ++a) {
+        tools[a].addEventListener("click", ToolSelectionHandler);
+    }
+
+    //Create the preview element and style it;
+    var elem = document.createElement("DIV");
+    elem.classList.add("circle");
+    elem.style.borderColor = "black";
+    elem.id = "preview";
+    elem.style.position = "absolute";
+    elem.style.width = "12.5%";
+    elem.style.height = "25%";
+    elem.style.display = "none";
+    viewport.appendChild(elem);
+
+    let shapeTools = ["circle"]
+
+
+    function DrawOnWorkspace(event) {
+        /**
+         * When the drag is done, it set the size, postion ,
+         *  creates and id and adds all of this to an object
+         */
+
+        if (!isDragging || !shapeTools.includes(currentSelected)) {
+
+        } else {
+
+            mouseMovement = 0;
+            isDragging = false;
+            let rect = elem.getBoundingClientRect();
+            canvas.moveTo(rect.x, rect.y);
+
+            let id = "#" + Math.floor(10 + Math.random() * 400000);
+
+            currentShapes[id] = {
+                id: id,
+                shape: currentSelected,
+                x: rect.left - rect.width,
+                y: rect.top,
+                width: rect.width,
+                height: rect.height,
+                color: "black"
+            }
+
+        }
+
+        render();
+
+    }
+
+
+    function UpdateViewPane() {
+        /**
+         * Simply destroys the current elements in the view
+         * pane and rebuilds with the current elements in the model
+         */
+
+        while (drawnPane.firstChild) {
+            drawnPane.removeChild(drawnPane.firstChild);
+        }
+        for (let obj in currentShapes) {
+            if (currentShapes.hasOwnProperty(obj)) {
+                let node = document.createElement("DIV");
+                node.addEventListener("click", function (event) {
+                    currentSelectedRenderedShape = currentShapes[obj]["id"];
+                    let children = event.target.parentNode.childNodes;
+                    for (let a = 0; a < children.length; ++a) {
+                        children[a].classList.remove("active");
+                        console.log("hey");
+                    }
+
+                    if (event.target.classList.contains("active")) {
+                        event.target.classList.remove("active");
+                    } else {
+                        event.target.classList.add("active");
+                    }
+
+
+                });
+                node.innerText = currentShapes[obj]["id"] + currentShapes[obj]["shape"];
+                node.style.cursor = "pointer";
+                node.classList.add("shapes");
+
+                drawnPane.appendChild(node);
+            }
+        }
+    }
 
 
 
-function DrawOnWorkspace(event) {
+    const renderShape = {
+        /**
+         * Object that defines how to render all shapes on the canvas
+         */
+        circle: function (arg) {
 
-    if (isDragging == false) {
+            canvas.beginPath();
+            canvas.arc(arg["x"], arg["y"], arg["height"],
+                0, 2 * Math.PI, false);
+            canvas.fillStyle = arg["black"];
+            canvas.fill();
+
+        },
+
+        square: function () {
+
+
+
+        },
+    }
+
+
+
+    function render() {
+        /**
+         * Calls the render object for all shapes
+         * in the model
+         */
+        canvas.clearRect(0, 0, canvas.canvas.width, canvas.canvas.height);
+        console.log("render called !");
+        for (let obj in currentShapes) {
+            if (currentShapes.hasOwnProperty(obj)) {
+
+                renderShape[currentShapes[obj]["shape"]](currentShapes[obj]);
+            }
+        }
+
+        UpdateViewPane();
+    }
+
+    function HandleClick(event) {
+        if (currentSelected != event.target.id) {
+            currentSelected = event.target.id;
+        } else {
+            currentSelected = null;
+        }
+    }
+
+    function DeleteItem(elem) {
         return;
-    } else {
-
-        mouseMovement = 0;
-        isDragging = false;
-
-        let rect = elem.getBoundingClientRect()
-        elem.style.width = "12.5%";
-        elem.style.height = "25%";
-        let newElem = document.createElement("DIV");
-        newElem.id = Math.floor(1 + Math.random() * 20000000) + "  circle";
-        currentElems.push(newElem.id);
-        newElem.classList.add("circle");
-        newElem.style.width = rect.width + "px";
-        newElem.style.height = rect.height + "px";
-        newElem.style.borderColor = "black";
-        newElem.style.position = "relative";
-        newElem.style.margin = "0px";
-        newElem.style.display = "inline-block";
-        newElem.style.zIndex = "1";
-        newElem.addEventListener("click", HandleClick)
-        workspc.appendChild(newElem);
-        RenderDrawnPane();
     }
 
-}
 
-function HandleClick(event) {
-    if (currentSelected != event.target.id) {
-        currentSelected = event.target.id;
-    } else {
-        currentSelected = null;
-    }
-}
+    var mouseMovement = 0;
 
-function DeleteItem(elem) {
-    return;
-}
+    function UpdatePreview(event) {
+        /**
+         * Binds the preview to cursor movement
+         * also binds size to X axis movement during dragging
+         */
+        if (!isDragging)
+            elem.style.top = event.clientY + "px";
+        elem.style.left = event.clientX + "px";
 
-function RenderDrawnPane() {
-
-    let currentpane = drawnPane.childNodes;
-    for (let i = 0; i < currentpane.length; ++i) {
-        drawnPane.removeChild(currentpane[i]);
+        if (isDragging) {
+            mouseMovement += (event.movementX * -1);
+            elem.style.width = mouseMovement + "px";
+            elem.style.height = mouseMovement + "px";
+        }
     }
 
-    var frag = new DocumentFragment();
+    function SetIsDragging() {
+        isDragging = true;
+    }
 
-    for (let a = 0; a < currentElems.length; ++a) {
+    function CursorPreview(tool) {
+        /**
+         * Makes the preview visible and binds it to mousemovements
+         */
+        if (!tool.target.classList.contains("active")) {
+            elem.style.display = "inline-block";
 
-        let newElem = document.createElement("DIV");
-        newElem.classList.add("viewer");
-        newElem.innerText = currentElems[a];
-        let button = document.createElement("BUTTON");
-        button.innerText = "Delete";
-        button.addEventListener("click", DeleteItem);
+            workspc.addEventListener("mousemove", UpdatePreview)
 
-        newElem.appendChild(button);
+        } else {
+            elem.style.display = "none";
+            console.log("Removed");
+            isDragging = false;
+            canvas.canvas.removeEventListener("mouseup", DrawOnWorkspace);
+            canvas.canvas.removeEventListener("mousemove", UpdatePreview);
+            canvas.canvas.removeEventListener("mousedown", SetIsDragging);
+        }
+    }
 
-        frag.appendChild(newElem);
+    function ToolSelectionHandler(event) {
+        console.log(event);
+
+
+
+        WhatDoesTheToolDo[event.target.id](event);
+
+
 
 
     }
 
-    drawnPane.appendChild(frag);
-}
+    const WhatDoesTheToolDo = {
+        "circle": function (event) {
+            console.log("circle");
+            currentSelected = "circle";
+            CursorPreview(event);
+            canvas.canvas.addEventListener("mousedown", () => {
+                isDragging = true;
+            });
+            canvas.canvas.addEventListener("mouseup", DrawOnWorkspace);
+            CursorPreview(event);
 
+        },
 
-
-
-
-var mouseMovement = 0;
-
-function UpdatePreview(event) {
-
-    if (!isDragging)
-        elem.style.transform = "translate(" + (parseInt(event.clientX + scrollX) - 500) + "px," + (parseInt(event.clientY + scrollY) - 200) + "px)"
-
-    if (isDragging) {
-        mouseMovement += (event.movementX * -1);
-        elem.style.width = mouseMovement + "px";
-        elem.style.height = mouseMovement + "px";
+        "delete": function (event) {
+            currentSelected = "delete";
+            if (currentSelectedRenderedShape) {
+                delete currentShapes[currentSelectedRenderedShape];
+                console.log(currentShapes);
+                render(event);
+            }
+        }
     }
-}
 
-function SetIsDragging() {
-    isDragging = true
-}
-
-function CursorPreview(tool) {
-    if (!tool.target.classList.contains("active")) {
-        elem.style.display = "inline-block";
-
-        workspc.addEventListener("mousemove", UpdatePreview)
-
-    } else {
-        elem.style.display = "none";
-        console.log("Removed");
-
-        isDragging = false;
-        workspc.removeEventListener("mouseup", DrawOnWorkspace);
-        workspc.removeEventListener("mousemove", UpdatePreview);
-        workspc.removeEventListener("mousedown", SetIsDragging);
-        workspc.removeEventListener("mouseup", DrawOnWorkspace);
+    for (var a = 0; a < tools.length; ++a) {
+        tools[a].addEventListener("click", function (event) {
+            event.stopPropagation();
+            event.target.classList.toggle("active");
+        });
     }
-}
-
-function ToolSelectionHandler(event) {
-    console.log(event);
-    CursorPreview(event);
-    workspc.addEventListener("mousedown", () => isDragging = true);
-    workspc.addEventListener("mouseup", DrawOnWorkspace)
-
-}
-
-
-
-
-console.log(tools);
-
-for (var a = 0; a < tools.length; ++a) {
-    tools[a].addEventListener("click", function (event) {
-        event.stopPropagation();
-        event.target.classList.toggle("active");
-    });
-}
+})();

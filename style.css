@@ -53,9 +53,13 @@ body {
     display: flex;
     height: 30px;
     width: 30px;
+    text-align: center;
+    font-family: Impact, Haettenschweiler, 'Arial Narrow Bold', sans-serif;
+    color: white;
     background-color: #103ea0;
     border: none;
     padding: 7px 15px 7px 15px;
+    margin: 0px 10px 0px;
     border-radius: 7px;
 }
 
@@ -87,9 +91,21 @@ button:focus {
 }
 
 .workspace {
+    position: relative;
     overflow: scroll;
     background-color: #edeff4;
     grid-column-start: 2;
     grid-column-end: 4;
     height: 100%;
+}
+
+.shapes {
+    margin: 0px auto 0px;
+    font-family: 'Trebuchet MS', 'Lucida Sans Unicode', 'Lucida Grande', 'Lucida Sans', Arial, sans-serif;
+    color: white;
+    font-weight: bold;
+    background-color: #273043;
+    padding: 30px;
+    margin-top: 2%;
+    border-radius: 7px;
 }
