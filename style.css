@@ -92,7 +92,7 @@ button:focus {
 
 .workspace {
     position: relative;
-    overflow: scroll;
+    overflow: hidden;
     background-color: #edeff4;
     grid-column-start: 2;
     grid-column-end: 4;
@@ -108,4 +108,8 @@ button:focus {
     padding: 30px;
     margin-top: 2%;
     border-radius: 7px;
+}
+
+* {
+    overflow: hidden;
 }
