@@ -86,7 +86,7 @@
         } else {
             this.currentSelectedRenderedShape = null;
         }
-        console.log(this.currentSelectedRenderedShape);
+
 
     };
 
@@ -292,7 +292,7 @@
         this.elem.style.width = "12.5%";
         this.elem.style.height = "25%";
         this.elem.style.display = "none";
-        this.workSpace = workSpace
+
         this.workSpace.appendChild(this.elem);
     };
 

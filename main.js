@@ -1,1 +1,1 @@
-let DrawE = new drawE();
+//let DrawE = new drawE();
