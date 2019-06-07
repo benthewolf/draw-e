@@ -14,18 +14,19 @@
         <div class="headbar">
             <span class="title">Draw-E</span>
             <div id="tools" class="tools">
-                <div id="circle" class="button tool">
-                    <div class="circle"></div>
+                <div id="circle" class="button tool">&#11044;</div>
+                <div id="square" class="button">&#8414;</div>
+                <div id="delete" class="button tool" style="text-align: center">Delete</div>
+                <div class="container"> <input type="color" class="button" id="colour_choice">
+                    <div id="colour_apply" class="button">Apply Color</div>
                 </div>
-
-                <div id="delete" class="button tool">
-                    Delete
-                </div>
+                <div id="move_up" class="button">&#8679;</div>
+                <div id="move_down" class="button">&#8681;</div>
+                <div id="move_left" class="button">&#8678;</div>
+                <div id="move_right" class="button">&#8680;</div>
             </div>
         </div>
-        <div id="drawnpane" class="sidebar">
-
-        </div>
+        <div id="drawnpane" class="sidebar"></div>
         <div class="workspace" id="workspc">
             <canvas id="canvas"></canvas>
         </div>

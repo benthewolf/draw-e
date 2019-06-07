@@ -2,9 +2,29 @@ const TOOL_CIRCLE = "circle";
 const TOOL_SQUARE = "square";
 const TOOL_RECTANGLE = "rectangle";
 const TOOL_DELETE = "delete";
-const TOOL_MOVE_UP = "moveUp";
-const TOOLS = [TOOL_CIRCLE, TOOL_SQUARE, TOOL_RECTANGLE, TOOL_DELETE];
-const EDITOR_TOOLS = [TOOL_DELETE];
+const TOOL_MOVE_UP = "move_up";
+const TOOL_MOVE_DOWN = "move_down";
+const TOOL_MOVE_LEFT = "move_left";
+const TOOL_MOVE_RIGHT = "move_right";
+const TOOL_COLOUR_CHANGE = "colour_apply"
+const TOOLS = [
+    TOOL_CIRCLE,
+    TOOL_DELETE,
+    TOOL_COLOUR_CHANGE,
+    TOOL_SQUARE,
+    TOOL_MOVE_UP,
+    TOOL_MOVE_DOWN,
+    TOOL_MOVE_LEFT,
+    TOOL_MOVE_RIGHT
+];
+const EDITOR_TOOLS = [
+    TOOL_DELETE,
+    TOOL_COLOUR_CHANGE,
+    TOOL_MOVE_UP,
+    TOOL_MOVE_DOWN,
+    TOOL_MOVE_LEFT,
+    TOOL_MOVE_RIGHT
+];
 
 class Shape {
     get getWidth() {
@@ -23,12 +43,12 @@ class Shape {
         return this.y;
     }
 
-    get getColor() {
-        return this.color;
+    get getColour() {
+        return this.colour;
     }
 
     get getId() {
-        this.id;
+        return this.id;
     }
 
     set setWidth(width) {
@@ -47,23 +67,23 @@ class Shape {
         this.y = y;
     }
 
-    set setColor(color) {
-        this.color = color;
+    set setColour(colour) {
+        this.colour = colour;
     }
 
-    constructor(width, height, x, y, color, id) {
+    constructor(width, height, x, y, colour, id) {
         this.width = width;
         this.height = height;
         this.x = x;
         this.y = y;
-        this.color;
+        this.colour = colour;
         this.id = id;
     }
 }
 
 class Circle extends Shape {
-    constructor(width, height, x, y, color = "black", id) {
-        super(width, height, x, y, color, id);
+    constructor(width, height, x, y, colour = "black", id) {
+        super(width, height, x, y, colour, id);
         this.radius = width / 2;
         this.name = TOOL_CIRCLE;
     }
@@ -71,7 +91,7 @@ class Circle extends Shape {
     draw(canvas) {
         canvas.beginPath();
         canvas.arc(this.getX, this.getY, this.getRadius, 0, 2 * Math.PI, false);
-        canvas.fillStyle = this.getColor;
+        canvas.fillStyle = this.getColour;
         canvas.fill();
     }
 
@@ -85,28 +105,28 @@ class Circle extends Shape {
 }
 
 class Rectangle extends Shape {
-    constructor(width, height, x, y, color = "black", id) {
-        super(width, height, x, y, color, id);
+    constructor(width, height, x, y, colour = "black", id) {
+        super(width, height, x, y, colour, id);
         this.name = TOOL_RECTANGLE;
     }
 
     draw(canvas) {
-        canvas.fillStyle = this.getColor;
+        canvas.fillStyle = this.getColour;
         canvas.fillRect(this.getX, this.getY, this.getWidth, this.getHeight);
     }
 }
 
 class Square extends Shape {
-    constructor(width, height, x, y, color = "black", id) {
+    constructor(width, height, x, y, colour = "black", id) {
         if (width != height) {
             throw new Error("This is not a Square !");
         }
-        super(width, height, x, y, color, id);
+        super(width, height, x, y, colour, id);
         this.name = TOOL_SQUARE;
     }
 
     draw(canvas) {
-        canvas.fillStyle = this.getColor;
+        canvas.fillStyle = this.getColour;
         canvas.fillRect(this.getX, this.getY, this.getWidth, this.getWidth);
     }
 }
@@ -118,14 +138,36 @@ class Model {
         this.currentSelectedTool = "";
         this.subscribers = [];
         this.idCount = 1;
+        this.currentRenderColour = "black"
+    }
+
+    shapeManipulations = {
+        colour(shape, newColour) {
+            shape.setColour = newColour;
+            this.currentRenderColour = newColour;
+        },
+
+        top(shape, newVal) {
+            shape.setY = shape.getY - newVal;
+        },
+
+        left(shape, newVal) {
+            shape.setX = shape.getX + newVal;
+        }
     }
 
     get getCurrentShapes() {
-        return this.currentShapes;
+        let output = Array.prototype.reverse.call(this.currentShapes);
+        delete output[length];
+        return output;
     }
 
-    get GetIdCount() {
+    get getIdCount() {
         return this.idCount++;
+    }
+
+    get getCurrentRenderColour() {
+        return this.currentRenderColour;
     }
 
     get getCurrentSelectedTool() {
@@ -145,13 +187,14 @@ class Model {
 
     deleteShape(id) {
         delete this.currentShapes[id];
-        this.currentSelectedShape = "";
+        this.currentSelectedShape = null;
         this.notifySubscribers("shapeDeletion", this.currentShapes);
     }
 
     editShape(id, property, newValue) {
-        this.currentShapes[id][property] = newValue;
-        this.currentShapes("shapeEdit", this.currentShapes);
+        let shape = this.currentShapes[id]
+        this.shapeManipulations[property].call(this, shape, newValue);
+        this.notifySubscribers("shapeEdit", this.currentShapes);
     }
 
     set setCurrentSelectedShape(shape) {
@@ -174,30 +217,38 @@ class Model {
 }
 
 class View {
-    DomTools = [TOOL_CIRCLE, TOOL_DELETE];
     DomElems = {
         canvas: "canvas",
         canvasParent: "workspc",
-        viewPane: "drawnPane"
+        viewPane: "drawnpane"
     };
 
     defaultShapesSettings = {
         circle() {
             this.elem = document.createElement("DIV");
-            this.elem.classList.add("circle");
             this.elem.id = "preview";
-            this.elem.style.borderColor = "black";
+            this.elem.style.border = "2px solid black"
             this.elem.style.position = "absolute";
-            this.elem.style.width = "40px";
-            this.elem.style.height = "40px";
+            this.elem.style.width = "50px";
+            this.elem.style.height = "50px";
+            this.elem.style.display = "block";
+            this.elem.style.borderRadius = "90%";
+            this.canvasContainer.appendChild(this.elem);
+        },
+
+        square() {
+
+            this.elem = document.createElement("DIV");
+            this.elem.id = "preview";
+            this.elem.style.border = "2px solid black"
+            this.elem.style.position = "absolute";
+            this.elem.style.width = "50px";
+            this.elem.style.height = "50px";
             this.elem.style.display = "block";
             this.canvasContainer.appendChild(this.elem);
-            let self = this;
-            this.canvasContainer.addEventListener(
-                "mousemove",
-                this.mouseMovementHandler
-            );
         }
+
+
     };
 
     constructor() {
@@ -232,9 +283,14 @@ class View {
     }
 
     init() {
-        for (let tool of this.DomTools) {
+        for (let tool of TOOLS) {
             document.getElementById(tool).addEventListener("click", this.toolClick);
         }
+
+        this.canvasContainer.addEventListener(
+            "mousemove",
+            this.mouseMovementHandler
+        );
 
         this.canvasContainer.addEventListener("mousedown", this.canvasClick);
         this.canvasContainer.addEventListener("mouseup", this.canvasClick);
@@ -243,21 +299,22 @@ class View {
     updateNow(message, data) {
         switch (message) {
             case "shapeAddition":
-                this.PopulateViewPane(data);
-                this.renderCanvas(data);
-                break;
-
-            case "shapeEdit":
-                this.ClearCanvas();
+                this.PopulateViewPane(data, true);
                 this.RenderCanvas(data);
                 break;
 
-            case "toolSelect":
-                console.log("Tool has been selected");
+            case "shapeEdit":
+                this.ClearViewPane();
+                this.ClearCanvas();
+                this.PopulateViewPane(data);
+                this.RenderCanvas(data);
                 break;
 
             case "shapeDeletion":
-                console.log("A shape has deleted");
+                this.ClearViewPane();
+                this.ClearCanvas();
+                this.PopulateViewPane(data);
+                this.RenderCanvas(data);
                 break;
         }
     }
@@ -268,27 +325,56 @@ class View {
         }
     }
 
-    PopulateViewPane(data) {
-        for (shape in data) {
-            if (data.hasOwnProperty(shape)) {
-                let node = document.createElement("DIV");
-                node.innerText = shape.name;
-                node.id = shape.getId;
-                node.style.cursor = "pointer";
-                node.classList.add("shapes");
-                node.addEventListener("click", this.clickPane);
+    PopulateViewPane(data, add = false) {
+        if (!add) {
+            for (let shape in data) {
+                if (data.hasOwnProperty(shape)) {
+                    let node = document.createElement("DIV");
+                    let text = (data[shape].name).toUpperCase() + "\n\n" +
+                        "Width: " + data[shape].getWidth + "\n" +
+                        "Height: " + data[shape].getHeight + "\n" +
+                        "Color: " + data[shape].getColour;
+
+                    node.innerText = text;
+                    node.style.textAlign = "center";
+                    node.id = data[shape].getId;
+                    node.style.cursor = "pointer";
+                    node.classList.add("shapes");
+                    node.addEventListener("click", this.clickPane);
+                    this.viewPane.appendChild(node);
+
+                }
+            }
+        } else {
+            for (let shape in data) {
+                if (data.hasOwnProperty(shape)) {
+                    let node = document.createElement("DIV");
+                    let text = (data[shape].name).toUpperCase() + "\n\n" +
+                        "Width: " + data[shape].getWidth + "\n" +
+                        "Height: " + data[shape].getHeight + "\n" +
+                        "Color: " + data[shape].getColour;
+
+                    node.innerText = text;
+                    node.style.textAlign = "center";
+                    node.id = data[shape].getId;
+                    node.style.cursor = "pointer";
+                    node.classList.add("shapes");
+                    node.addEventListener("click", this.clickPane);
+                    this.viewPane.insertAdjacentElement("afterbegin", node);
+
+                }
             }
         }
     }
 
     ClearCanvas() {
-        canvas.clearRect(0, 0, this.canvas.canvas.width, this.canvas.canvas.height);
+        this.canvas.clearRect(0, 0, this.canvas.canvas.width, this.canvas.canvas.height);
     }
 
     RenderCanvas(data) {
-        for (shape in data) {
+        for (let shape in data) {
             if (data.hasOwnProperty(shape)) {
-                shape.draw(this.canvas);
+                data[shape].draw(this.canvas);
             }
         }
     }
@@ -298,16 +384,49 @@ class View {
     }
 
     deletePreview() {
-        this.elem.remove();
+        if (this.elem)
+            this.elem.remove();
     }
 }
 
 class MainController {
     editorTools = {
-        delete: function (event) {
-            this.model.deleteShape(event.target.id);
+        delete() {
+            this.model.deleteShape(this.model.getCurrentSelectedShape);
+        },
+
+        colour_apply() {
+            let colour = document.getElementById("colour_choice").value;
+            this.model.editShape(this.model.getCurrentSelectedShape, "colour", colour)
+        },
+        move_up() {
+            this.model.editShape(this.model.getCurrentSelectedShape, "top", 3);
+        },
+        move_down() {
+            this.model.editShape(this.model.getCurrentSelectedShape, "top", -3);
+        },
+        move_left() {
+            this.model.editShape(this.model.getCurrentSelectedShape, "left", -3);
+        },
+        move_right() {
+            this.model.editShape(this.model.getCurrentSelectedShape, "left", 3);
         }
+
     };
+
+    shapeTools = {
+        circle(width, height, x, y, colour, id) {
+            return new Circle(width, height, x, y, colour, id)
+        },
+
+        rectangle(width, height, x, y, colour, id) {
+            return new Rectangle(width, height, x, y, colour, id)
+        },
+
+        square(width, height, x, y, colour, id) {
+            return new Square(width, height, x, y, colour, id)
+        },
+    }
 
     constructor(model, view) {
         this.isDragging = false;
@@ -330,6 +449,7 @@ class MainController {
                 executions[event.target.id].call(this, event);
             } else {
                 if (this.model.getCurrentSelectedTool != event.target.id) {
+                    this.view.deletePreview();
                     this.model.setCurrentSelectedTool = event.target.id;
                     this.view.showPreviewElem(event.target.id);
                 } else {
@@ -341,15 +461,25 @@ class MainController {
     }
 
     mouseMovementHandler(event) {
+        if (this.view.elem == undefined) {
+            return;
+        }
+
         if (this.isDragging) {
             this.mouseMovement += event.movementX * -1;
-            this.elem.style.width = this.mouseMovement + "px";
-            this.elem.style.height = this.mouseMovement + "px";
+            this.view.elem.style.width = this.mouseMovement + "px";
+            this.view.elem.style.height = this.mouseMovement + "px";
+            //let top = window.innerHeight - this.view.canvasContainer.getBoundingClientRect().width;
+            let left = window.innerWidth - this.view.canvasContainer.getBoundingClientRect().width;
+
+            this.view.elem.style.top = (event.clientY) + "px";
+            this.view.elem.style.left = (event.clientX - left) + "px"
         } else {
-            let top = event.offsetY;
-            let left = event.offsetX;
-            this.view.elem.style.top = top + "px";
-            this.view.elem.style.left = left + "px";
+            //let top = window.innerHeight - this.view.canvasContainer.getBoundingClientRect().width;
+            let left = window.innerWidth - this.view.canvasContainer.getBoundingClientRect().width;
+
+            this.view.elem.style.top = (event.clientY) + "px";
+            this.view.elem.style.left = (event.clientX - left) + "px"
         }
     }
 
@@ -358,16 +488,40 @@ class MainController {
             !EDITOR_TOOLS.includes(this.model.getCurrentSelectedTool) &&
             this.model.getCurrentSelectedTool != null
         ) {
-            console.log("hey");
             if (!this.isDragging) {
-                this.isDragging == true;
+                this.isDragging = true;
             } else {
+                let top = window.innerHeight - this.view.canvasContainer.getBoundingClientRect().width;
+                let left = window.innerWidth - this.view.canvasContainer.getBoundingClientRect().width;
                 this.isDragging = false;
+                let rect = this.view.elem.getBoundingClientRect();
+                this.model.addShape(
+                    this.shapeTools[this.model.getCurrentSelectedTool](
+                        rect.width,
+                        rect.height,
+                        rect.left - left + 4,
+                        rect.top,
+                        this.model.getCurrentRenderColour,
+                        this.model.getIdCount
+                    )
+                )
             }
         }
     }
 
-    viewPaneClick(event) {}
+    viewPaneClick(event) {
+        let children = event.target.parentNode.childNodes;
+        if (this.model.getCurrentSelectedShape != event.target.id) {
+            for (let a = 0; a < children.length; ++a) {
+                children[a].classList.remove("active");
+            }
+            event.target.classList.add("active");
+            this.model.setCurrentSelectedShape = event.target.id;
+        } else {
+            this.model.setCurrentSelectedShape = null;
+            event.target.classList.remove("active");
+        }
+    }
 }
 
 class DrawE_New {
@@ -379,4 +533,4 @@ class DrawE_New {
     }
 }
 
-let drawE_new = new DrawE_New();
+const drawE_new = new DrawE_New();
